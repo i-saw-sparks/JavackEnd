@@ -52,16 +52,19 @@ public class order {
             JSONObject resp = new JSONObject();
             if(rs.next())
             {   
+                String userid = rs.getString("ID");
                 String total = rs.getString("Total");
                 String status = rs.getString("Status");
                 String fecha = rs.getString("Fecha_pedido");
                 String direccion = rs.getString("Direccion");
                 String usuario = rs.getString("Usuario");
+                resp.put("ID", userid);
                 resp.put("Total", total);
                 resp.put("Status", status);
                 resp.put("Fecha_pedido", fecha);
                 resp.put("Direccion", direccion);
                 resp.put("Usuario", usuario);
+                
             }
             return Response.ok(resp.toJSONString()).build();
         }else{
