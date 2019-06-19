@@ -23,6 +23,12 @@ import javax.ws.rs.core.Response;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import database.Database;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import org.json.simple.JSONArray;
 
 /**
  *
@@ -33,17 +39,57 @@ import org.json.simple.parser.ParseException;
 public class order {
     
     @GET
-    public Response getOrder(@QueryParam("id") Integer id){
-        
+    public Response getOrder(
+            @QueryParam("id") Integer id, 
+            @QueryParam("user") Integer user
+            ) throws SQLException{
+        Connection conn = Database.getConnection();
         if(id != null){
+            String query = "SELECT * FROM cocollector.\"Orden\" WHERE \"ID\" = ?";
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setInt(1, id);
+            ResultSet rs = st.executeQuery();
             JSONObject resp = new JSONObject();
-            resp.put("id", "not null");
+            if(rs.next())
+            {   
+                String total = rs.getString("Total");
+                String status = rs.getString("Status");
+                String fecha = rs.getString("Fecha_pedido");
+                String direccion = rs.getString("Direccion");
+                String usuario = rs.getString("Usuario");
+                resp.put("Total", total);
+                resp.put("Status", status);
+                resp.put("Fecha_pedido", fecha);
+                resp.put("Direccion", direccion);
+                resp.put("Usuario", usuario);
+            }
             return Response.ok(resp.toJSONString()).build();
         }else{
-            JSONObject resp = new JSONObject();
-            resp.put("id", "null");
-            return Response.ok(resp.toJSONString()).build();
-        }  
+            String query = "SELECT * FROM cocollector.\"Orden\" WHERE \"Usuario\" = ?";
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setInt(1, user);
+            ResultSet rs = st.executeQuery();
+            JSONArray respArr = new JSONArray();
+            while(rs.next())
+            {
+                JSONObject resp = new JSONObject();
+                String total = rs.getString("Total");
+                String status = rs.getString("Status");
+                String fecha = rs.getString("Fecha_pedido");
+                String direccion = rs.getString("Direccion");
+                String usuario = rs.getString("Usuario");
+                resp.put("Total", total);
+                resp.put("Status", status);
+                resp.put("Fecha_pedido", fecha);
+                resp.put("Direccion", direccion);
+                resp.put("Usuario", usuario);
+                respArr.add(resp);
+            }
+            return Response.ok(respArr.toJSONString()).build();
+        }
+        
+        //return Response.status(400).build();
+          
     }
     
     @POST
