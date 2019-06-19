@@ -56,6 +56,8 @@ public class order {
             
             if(jsonObject.containsKey("total")){
                 j = jsonObject.get("total").toString();
+            }else{
+                return Response.status(400).build();
             }
             
             JSONObject resp = new JSONObject();
@@ -67,12 +69,10 @@ public class order {
             
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return Response.serverError().build();
+        return Response.status(404).build();
     }
     
     @PUT
@@ -87,9 +87,7 @@ public class order {
             
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
         return Response.serverError().build();
@@ -108,9 +106,7 @@ public class order {
             
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
+        } catch (IOException | ParseException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
         return Response.serverError().build();
