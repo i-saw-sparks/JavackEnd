@@ -52,10 +52,18 @@ public class order {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
             
-            String total = jsonObject.get("total").toString();
+            String j = "";
+            
+            if(jsonObject.containsKey("total")){
+                j = jsonObject.get("total").toString();
+            }
+            
+            JSONObject resp = new JSONObject();
+            resp.put("respuesta", j);
+            
             //Aqui se toman los argumentos y se realiza la query
             
-            return Response.ok().build();
+            return Response.ok(resp.toJSONString()).build();
             
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
