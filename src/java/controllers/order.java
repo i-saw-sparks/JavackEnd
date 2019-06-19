@@ -52,16 +52,18 @@ public class order {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
             
-            String j = "";
+            JSONObject resp = new JSONObject();
+            
             
             if(jsonObject.containsKey("total")){
-                j = jsonObject.get("total").toString();
+                String j = jsonObject.get("total").toString();
+                resp.put("respuesta", j);
             }else{
                 return Response.status(400).build();
             }
             
-            JSONObject resp = new JSONObject();
-            resp.put("respuesta", j);
+            
+            
             
             //Aqui se toman los argumentos y se realiza la query
             
