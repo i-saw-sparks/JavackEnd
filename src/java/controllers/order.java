@@ -42,6 +42,17 @@ import org.json.simple.JSONArray;
 @Produces(MediaType.APPLICATION_JSON)
 public class order {
     
+    
+    /**
+     * Obtiene como parámetros el id de la orden que se quiere
+     * regresar, o el usuario del cual se necesitan obtener las ordenes.
+     * En caso de ser por id regresa la orden en espécifico y un código 200.
+     * En caso de ser por usuario regresa todas las órdenes pertenecientes a el y un código 200.
+     * Si algún error ocurre en el proceso manda un código de error 400.
+     * @param id
+     * @param user
+     * @return 
+     */
     @GET
     public Response getOrder(
             @QueryParam("id") Integer id, 
