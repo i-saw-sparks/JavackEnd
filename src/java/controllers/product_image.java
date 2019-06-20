@@ -41,6 +41,7 @@ public class product_image {
      * Método para subir la una imagen de un producto.
      * @return 
      */
+    
     @GET
     public Response getImage() {
         Connection conn = Database.getConnection();
@@ -56,7 +57,7 @@ public class product_image {
             ResultSet rs = st.executeQuery();
             JSONArray respArr = new JSONArray();
             
-            if(rs.next()) {
+            while(rs.next()) {
                 JSONObject resp = new JSONObject();
                 String ruta = rs.getString("Ruta");
                 Integer producto = rs.getInt("Producto");
