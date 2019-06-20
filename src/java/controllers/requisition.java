@@ -32,18 +32,23 @@ import org.json.simple.parser.ParseException;
 
 /**
  *
- * @author manie
+ * @author lghhs
  */
 @Path("/pedido")
 @Produces(MediaType.APPLICATION_JSON)
 public class requisition {
     
-    /// El get esta terminado pero sin probar
+    /**
+     * Obtiene como parámetros el id del pedido que se quiere
+     * regresar.
+     * En caso de que se realice la consulta regresa la orden en espécifico y un código 200.
+     * Si no se encuentra el JSON estará vacío.
+     * Si algún error ocurre en el proceso manda un código de error 400.
+     * @param id
+     * @return 
+     */
     @GET
-    public Response getReq(
-            @QueryParam("id") Integer id, 
-            @QueryParam("user") Integer user
-            ){
+    public Response getReq(@QueryParam("id") Integer id){
         Connection conn = Database.getConnection();
         if(id != null){
             try {
@@ -77,19 +82,40 @@ public class requisition {
     @POST
     public Response createReq(InputStream input){
         try {
+            Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
             
-            //Aqui se toman los argumentos y se realiza la query
+            String query = "INSERT into cocollector.\"Pedido\"(\"Total\", "
+                    + "\"Cantidad\", "
+                    + "\"Orden\", "
+                    + "\"Producto\") "
+                    + "VALUES (?,?,?,?) returning \"ID\"";
+       
+            PreparedStatement st;
+            try {
+                st = conn.prepareStatement(query);
+                st.setInt(1, Integer.parseInt(jsonObject.get("total").toString()));
+                st.setInt(2, Integer.parseInt(jsonObject.get("cantidad").toString()));
+                st.setInt(4, (Integer.parseInt(jsonObject.get("orden").toString())));
+                st.setInt(5, (Integer.parseInt(jsonObject.get("producto").toString())));
+                ResultSet rs = st.executeQuery();
+                JSONObject resp = new JSONObject();
+                if(rs.next()){
+                    resp.put("id", rs.getString("ID"));
+                }
+                return Response.ok(resp.toJSONString()).build();
+            } catch (SQLException ex) {
+                Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
+            }
             
-            return Response.ok().build();
             
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return Response.status(404).build();
+        return Response.status(400).build();
     }
     
     /// El put sin terminar
@@ -113,21 +139,18 @@ public class requisition {
     
     /// El delete esta terminado pero sin probar
     @DELETE
-    public Response deleteOrder(InputStream input){
+    public Response deleteOrder(@QueryParam("id") Integer id){
+        Connection conn = Database.getConnection();
+        String query = "DELETE FROM cocollector.\"Pedido\" WHERE \"ID\" = ?";
+        PreparedStatement st;
         try {
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
-            
-            String id = jsonObject.get("id").toString();
-            //Aqui se toman los argumentos y se realiza la query
-            
+            st = conn.prepareStatement(query);
+            st.setInt(1, id);
+            st.execute();
             return Response.ok().build();
-            
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException | ParseException ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return Response.serverError().build();
+        return Response.status(400).build();
     }
 }
