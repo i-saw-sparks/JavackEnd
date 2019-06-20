@@ -38,6 +38,7 @@ public class Database
         {
             try
             {
+                Class.forName("org.postgresql.Driver");
                 Connection connection = DriverManager.getConnection(url, user, password);
                 logger.info("Succesfully connected");
                 pool.add(connection);
@@ -46,6 +47,8 @@ public class Database
             {
                 logger.info("Failed: "+ex.getMessage());
                 ex.printStackTrace();
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
             } 
         }
     }
