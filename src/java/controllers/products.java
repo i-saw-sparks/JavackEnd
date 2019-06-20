@@ -49,6 +49,7 @@ public class products {
      * @param category_id
      * @return 
      */
+    
     @GET
     public Response getProduct(
             @QueryParam("id") Integer id,
@@ -190,7 +191,7 @@ public class products {
                         + " \"Nombre\", "
                         + " \"Precio\", "
                         + " \"Stock\", "
-                        + " \"Categoria\") VALUES (?, ?, ?, ?, ?, ?) ";
+                        + " \"Categoria\") VALUES (?, ?, ?, ?, ?) ";
        
             PreparedStatement st;
             try {
@@ -202,7 +203,7 @@ public class products {
                 st.setInt(4, (Integer.parseInt(jsonObject.get("stock").toString())));
                 st.setInt(5, (Integer.parseInt(jsonObject.get("categoria").toString())));
                 
-                st.executeUpdate();
+                st.execute();
 
                 return Response.ok().build();
             } catch (SQLException ex) {
