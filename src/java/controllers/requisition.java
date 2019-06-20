@@ -39,8 +39,8 @@ import org.json.simple.parser.ParseException;
 public class requisition {
     
     /**
-     * Obtiene como parámetros el id del pedido que se quiere
-     * regresar.
+     * Obtiene como parámetro el id del pedido que se quiere
+     * obtener.
      * En caso de que se realice la consulta regresa la orden en espécifico y un código 200.
      * Si no se encuentra el JSON estará vacío.
      * Si algún error ocurre en el proceso manda un código de error 400.
@@ -130,10 +130,10 @@ public class requisition {
     /**
      * Por medio del InputStream recibe todos los valores
      * necesarios para modificar un pedido.
-     * Primero verifica que la id estè entre los valores.
+     * Primero verifica que la id esté entre los valores.
      * Realiza un SELECT a la base de datos para obtener los datos previos
      * y los guarda, para posteriormente modificar los valores solo si vienen 
-     * en los paràmetros y si no están vacíos.
+     * en los parámetros y si no están vacíos.
      * Retorna un código 200 si se hizo la modificación correctamente.
      * Si ocurre algún error al momento de la inserción regresa un 400.
      * @param input
