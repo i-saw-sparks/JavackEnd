@@ -28,6 +28,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.ws.rs.Consumes;
 import org.json.simple.JSONArray;
 
 /**
@@ -41,7 +45,7 @@ public class order {
     @GET
     public Response getOrder(
             @QueryParam("id") Integer id, 
-            @QueryParam("user") Integer user
+            @QueryParam("user") Integer user //Quitar con token
             ){
         Connection conn = Database.getConnection();
         if(id != null){
@@ -53,12 +57,12 @@ public class order {
                 JSONObject resp = new JSONObject();
                 if(rs.next())
                 {
-                    String userid = rs.getString("ID");
-                    String total = rs.getString("Total");
+                    Integer userid = rs.getInt("ID");
+                    Integer total = rs.getInt("Total");
                     String status = rs.getString("Status");
-                    String fecha = rs.getString("Fecha_pedido");
-                    String direccion = rs.getString("Direccion");
-                    String usuario = rs.getString("Usuario");
+                    Date fecha = rs.getDate("Fecha_pedido");
+                    Integer direccion = rs.getInt("Direccion");
+                    Integer usuario = rs.getInt("Usuario");
                     resp.put("ID", userid);
                     resp.put("Total", total);
                     resp.put("Status", status);
@@ -81,16 +85,16 @@ public class order {
                 while(rs.next())
                 {
                     JSONObject resp = new JSONObject();
-                    String total = rs.getString("Total");
+                    Integer total = rs.getInt("Total");
                     String status = rs.getString("Status");
-                    String fecha = rs.getString("Fecha_pedido");
-                    String direccion = rs.getString("Direccion");
-                    String usuario = rs.getString("Usuario");
-                    resp.put("Total", total);
+                    Date fecha = rs.getDate("Fecha_pedido");
+                    Integer direccion = rs.getInt("Direccion");
+                    Integer usuario = rs.getInt("Usuario");
+                    resp.put("Total",  total);
                     resp.put("Status", status);
                     resp.put("Fecha_pedido", fecha);
                     resp.put("Direccion", direccion);
-                    resp.put("Usuario", usuario);
+                    resp.put("Usuario", usuario);                   
                     respArr.add(resp);
                 }
                 return Response.ok(respArr.toJSONString()).build();
@@ -104,70 +108,139 @@ public class order {
     }
     
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response createOrder(InputStream input){
         try {
+            Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
             
-            JSONObject resp = new JSONObject();
-            
-            
-            if(jsonObject.containsKey("total")){
-                String j = jsonObject.get("total").toString();
-                resp.put("respuesta", j);
-            }else{
-                return Response.status(400).build();
+            String query = "INSERT into cocollector.\"Orden\"(\"Total\", "
+                    + "\"Status\", "
+                    + "\"Fecha_pedido\", "
+                    + "\"Direccion\", "
+                    + "\"Usuario\") VALUES (?,?::estado,?,?,?) returning \"ID\"";
+       
+            PreparedStatement st;
+            try {
+                st = conn.prepareStatement(query);
+                st.setInt(1, Integer.parseInt(jsonObject.get("total").toString()));
+                st.setString(2, (jsonObject.get("estado").toString()));
+                
+                st.setDate(3, new java.sql.Date(System.currentTimeMillis()));
+                
+                st.setInt(4, (Integer.parseInt(jsonObject.get("direccion").toString())));
+                st.setInt(5, (Integer.parseInt(jsonObject.get("usuario").toString()))); //Quitar con token
+                ResultSet rs = st.executeQuery();
+                JSONObject resp = new JSONObject();
+                if(rs.next()){
+                    resp.put("id", rs.getString("ID"));
+                }
+                return Response.ok(resp.toJSONString()).build();
+            } catch (SQLException ex) {
+                Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
             }
             
             
-            
-            
-            //Aqui se toman los argumentos y se realiza la query
-            
-            return Response.ok(resp.toJSONString()).build();
-            
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return Response.status(404).build();
+        return Response.status(400).build();
     }
     
     @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyOrder(InputStream input){
         try {
+            Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
-            
-            //Aqui se toman los argumentos y se realiza la query
-            
-            return Response.ok().build();
-            
+            Integer id =  Integer.parseInt(jsonObject.get("id").toString());
+            String query = "SELECT * from cocollector.\"Orden\" where \"ID\" = ?";
+            PreparedStatement st;
+            try{
+                st = conn.prepareStatement(query);
+                st.setInt(1, id);
+                ResultSet rs = st.executeQuery();
+           
+                if(rs.next()){
+                    int total;
+                    String estado;
+                    java.sql.Date fpedido;
+                    int direccion;
+                    int usuario;
+                
+                    if(jsonObject.containsKey("total")){
+                        total = Integer.parseInt(jsonObject.get("total").toString());
+                    }else{
+                        total = rs.getInt("Total");
+                    }
+                    
+                    if(jsonObject.containsKey("estado")){
+                        estado = jsonObject.get("estado").toString();
+                    }else{
+                        estado = rs.getString("Status");
+                    }
+                    
+                    fpedido = rs.getDate("Fecha_pedido");
+                    
+                    
+                    if(jsonObject.containsKey("direccion")){
+                        direccion = Integer.parseInt(jsonObject.get("direccion").toString());
+                    }else{
+                        direccion = rs.getInt("Direccion");
+                    }
+                    
+                    if(jsonObject.containsKey("usuario")){
+                        usuario = Integer.parseInt(jsonObject.get("usuario").toString());
+                    }else{
+                        usuario = rs.getInt("Usuario");
+                    }
+                    
+                    String querx = "UPDATE cocollector.\"Orden\" SET "
+                            + "\"Total\" = ?, "
+                            + "\"Status\" = ?::estado, "
+                            + "\"Fecha_pedido\" = ?, "
+                            + "\"Direccion\" = ?, "
+                            + "\"Usuario\" = ? where \"ID\" = ?";
+                    PreparedStatement sts;
+                    sts = conn.prepareStatement(querx);
+                    sts.setInt(1, total);
+                    sts.setString(2, estado);
+                    sts.setDate(3, fpedido);
+                    sts.setInt(4, direccion);
+                    sts.setInt(5, usuario);
+                    sts.setInt(6, id);
+                    
+                    sts.execute();                        
+                }  
+                return Response.ok().build();
+            }catch(SQLException ex){
+                Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return Response.serverError().build();
+        return Response.status(400).build();
     }
     
     @DELETE
-    public Response deleteOrder(InputStream input){
+    public Response deleteOrder(@QueryParam("id") Integer id){
+        Connection conn = Database.getConnection();
+        String query = "DELETE FROM cocollector.\"Orden\" WHERE \"ID\" = ?";
+        PreparedStatement st;
         try {
-            JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
-            
-            String id = jsonObject.get("id").toString();
-            //Aqui se toman los argumentos y se realiza la query
-            
+            st = conn.prepareStatement(query);
+            st.setInt(1, id);
+            st.execute();
             return Response.ok().build();
-            
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException | ParseException ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return Response.serverError().build();
+        return Response.status(400).build();
     }
 }
