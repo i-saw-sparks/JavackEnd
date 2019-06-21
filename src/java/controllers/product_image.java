@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -86,9 +87,12 @@ public class product_image {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response uploadImage(InputStream input) {
+    public Response uploadImage(InputStream input,@HeaderParam("Authorization") String token) {
         
         try {
+            if(!Token.authenticated(token)){
+                return Response.status(403).build();
+            }
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));

@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -48,7 +49,12 @@ public class requisition {
      * @return 
      */
     @GET
-    public Response getReq(@QueryParam("id") Integer id){
+    public Response getReq(@QueryParam("id") Integer id,@HeaderParam("Authorization") String token){
+        
+         if(!Token.authenticated(token)){
+                return Response.status(403).build();
+        }
+         
         Connection conn = Database.getConnection();
         if(id != null){
             try {
@@ -140,8 +146,11 @@ public class requisition {
      * @return 
      */
     @PUT
-    public Response modifyReq(InputStream input){
+    public Response modifyReq(InputStream input,@HeaderParam("Authorization") String token){
         try {
+            if(!Token.authenticated(token)){
+                return Response.status(401).build();
+            }
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));

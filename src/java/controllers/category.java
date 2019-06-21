@@ -48,7 +48,7 @@ public class category {
      * @return 
      */
     @GET
-    public Response getReq(@QueryParam("id") Integer id){
+    public Response getCat(@QueryParam("id") Integer id){
         Connection conn = Database.getConnection();
         if(id != null){
             try {
@@ -108,7 +108,7 @@ public class category {
      * @return 
      */
     @POST
-    public Response createReq(InputStream input){
+    public Response createCat(InputStream input){
         try {
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
@@ -155,7 +155,7 @@ public class category {
      * @return 
      */
     @PUT
-    public Response modifyReq(InputStream input){
+    public Response modifyCat(InputStream input){
         try {
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
@@ -205,7 +205,7 @@ public class category {
      * @return 
      */
     @DELETE
-    public Response deleteOrder(@QueryParam("id") Integer id){
+    public Response deleteCat(@QueryParam("id") Integer id){
         Connection conn = Database.getConnection();
         String query = "DELETE FROM cocollector.\"Categoria\" WHERE \"ID\" = ?";
         PreparedStatement st;

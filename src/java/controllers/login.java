@@ -37,12 +37,17 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
- *
- * @author manie
+ * 
+ * @author ppc
  */
 @Path("/login")
 @Produces(MediaType.APPLICATION_JSON)
 public class login {
+    /**
+     * Hace la autenticación y genera el tokken de la sesión
+     * @param input Request, es el body del JSON que se envió por POST
+     * @return Response, 404 si hubo error y tipo + id si no.
+     */
      @POST
     public Response login_entry(InputStream input){
         try {
@@ -86,7 +91,7 @@ public class login {
                     String id = rs.getString("ID");
                     String tipo = rs.getString("Tipo");
                     
-                    String token=Tokken.getToken(id);
+                    String token=Token.getToken(id);
                     respobj.put("token", token);
                     respobj.put("userType", tipo);
                     respobj.put("hola", "hola");
