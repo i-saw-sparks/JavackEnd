@@ -54,7 +54,7 @@ public class products {
     @GET
     public Response getProduct(
             @QueryParam("id") Integer id,
-            @QueryParam("category_id") Integer category_id
+            @QueryParam("idCategoria") Integer category_id
     ){
         Connection conn = Database.getConnection();
         if(id != null) {
@@ -109,7 +109,9 @@ public class products {
             }
         }else if(category_id != null) {
             try {
-                String query = "SELECT * FROM cocollector.\"Producto\" WHERE \"Categoria\" = ?";
+                String query = "SELECT *,"
+                        + "(SELECT \"Ruta\" AS img1 FROM cocollector.\"Imagen\" WHERE cocollector.\"Producto\".\"ID_Producto\" = cocollector.\"Imagen\".\"Producto\" LIMIT 1 OFFSET 0)"
+                        + " FROM cocollector.\"Producto\" WHERE \"Categoria\" = ?";
                 PreparedStatement st = conn.prepareStatement(query);
                 st.setInt(1, category_id);
                 ResultSet rs = st.executeQuery();
@@ -123,13 +125,15 @@ public class products {
                     Integer precio = rs.getInt("Precio");
                     Integer stock = rs.getInt("Stock");
                     Integer categoria = rs.getInt("Categoria");
-                    
+                    String url = rs.getString("img1");
+                            
                     resp.put("ID_Producto", productId);
                     resp.put("Descripcion", descripcion);
                     resp.put("Nombre", nombre);
                     resp.put("Precio", precio);
                     resp.put("Stock", stock);
                     resp.put("Categoria", categoria);
+                    resp.put("img1", url);
                     respArr.add(resp);
                 }
                 

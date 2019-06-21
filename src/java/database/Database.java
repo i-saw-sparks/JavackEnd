@@ -20,11 +20,11 @@ public class Database
 { 
     private static ConcurrentLinkedDeque<Connection> pool;
     private static Logger logger;
-    private static String database = "BDCocoProyecto";
-    private static String user = "cocollector";
+    private static String database = "bdcocoproyectodist";
+    private static String user = "postgres";
     private static String password = "12345678";
-    private static String host = "192.168.84.214";
-    private static String port = "5432";
+    private static String host = "192.168.84.90";
+    private static String port = "5436";
     private static int initialConnections = 3;
     private static String url;
     
@@ -59,24 +59,32 @@ public class Database
      */
     public static Connection getConnection()
     {
-        if(pool.isEmpty())
-        {
+        try {
+            return DriverManager.getConnection(url,user,password);
+            /*
+            if(pool.isEmpty())
+            {
             try 
             {
-                Connection newConnection = DriverManager.getConnection(url,user,password);
-                logger.info("DB requested");
-                return newConnection;
-            } 
-            catch (SQLException ex) 
-            {
-                logger.info("Failed"+ex.getMessage());
-                return null;
+            Connection newConnection = DriverManager.getConnection(url,user,password);
+            logger.info("DB requested");
+            return newConnection;
             }
-        }
-        else 
-        {
+            catch (SQLException ex)
+            {
+            logger.info("Failed"+ex.getMessage());
+            return null;
+            }
+            }
+            else
+            {
             return pool.getFirst();
+            }
+            */
+        } catch (Exception ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return null;
     }
     
     /**
@@ -85,7 +93,13 @@ public class Database
      */
     public static void returnConnection(Connection connection)
     {
-        logger.info("Connection returned");
-        pool.addLast(connection);
+        try {
+            connection.close();
+            /*
+            logger.info("Connection returned");
+            pool.addLast(connection);*/
+        } catch (Exception ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

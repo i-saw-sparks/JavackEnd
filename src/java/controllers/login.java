@@ -85,24 +85,25 @@ public class login {
                 ResultSet rs = st.executeQuery();
                 JSONArray respArr = new JSONArray();
                 JSONObject respobj=new JSONObject();
-                while(rs.next())
+                if(rs.next())
                 {
                     respobj = new JSONObject();
-                    String id = rs.getString("ID");
+                    Integer id = rs.getInt("ID");
                     String tipo = rs.getString("Tipo");
                     
-                    String token=Token.getToken(id);
+                    String token=Token.getToken(id.toString());
                     respobj.put("token", token);
                     respobj.put("userType", tipo);
                     respobj.put("hola", "hola");
                     respobj.put("id", id);
                     respArr.add(resp);
+                    return Response.ok(respobj.toJSONString()).build();
+
                 }
-                return Response.ok(respobj.toJSONString()).build();
             } catch (SQLException ex) {
                 Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+          
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {

@@ -39,7 +39,7 @@ import org.json.simple.parser.ParseException;
 public class users 
 {
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
+    //@Consumes(MediaType.APPLICATION_JSON)
     public Response modifyUser(@HeaderParam("Authorization") String token,
             InputStream input)
     {
@@ -49,11 +49,11 @@ public class users
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
             
-            if(token.equals(null) || token.equals(""))
+            if(!Token.authenticated(token))
             {
                 return Response.status(401).build();
             }
-            Integer id = 5;   //Aquí va lo de token
+            Integer id = Token.getId(token);   //Aquí va lo de token
             String query = "SELECT * FROM cocollector.\"Usuario\" WHERE \"ID\" = ?";
             PreparedStatement ps = con.prepareStatement(query);
             ps.setInt(1, id);
@@ -63,7 +63,7 @@ public class users
                 nombre = (jsonObject.containsKey("nombre"))? jsonObject.get("nombre").toString() : rs.getString("Nombre");
                 apellidoP = (jsonObject.containsKey("apellidoPaterno"))? jsonObject.get("apellidoPaterno").toString() : rs.getString("Apellido_Paterno");
                 apellidoM = (jsonObject.containsKey("apellidoMaterno")) ? jsonObject.get("apellidoMaterno").toString() : rs.getString("Apellido_materno");
-                username = (jsonObject.containsKey("nombreDeUsuario"))? jsonObject.get("nombreDeUsuario").toString() : rs.getString("");
+                username = (jsonObject.containsKey("nombreDeUsuario"))? jsonObject.get("nombreDeUsuario").toString() : rs.getString("Nombre_usuario");
 ;               correo = (jsonObject.containsKey("correo"))? jsonObject.get("correo").toString() : rs.getString("Correo");
                 pass = (jsonObject.containsKey("contrasena"))? jsonObject.get("contrasena").toString() : rs.getString("Contrasena");
             }
@@ -85,6 +85,7 @@ public class users
             ps.setString(4, username);
             ps.setString(5, correo);
             ps.setString(6, pass);
+            ps.setInt(7, id);
             
             ps.execute();
             
@@ -116,6 +117,8 @@ public class users
         
         if(Token.authenticated(token)){
             id=Token.getId(token);
+        }else{
+            return Response.status(403).build();
         }
        
         Connection con = Database.getConnection();
