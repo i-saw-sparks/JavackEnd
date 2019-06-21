@@ -113,10 +113,11 @@ public class users
             @HeaderParam("Authorization") String token)
     {
         Integer id = data;
-        /*if(token!=null || token.equals(""))
-        {
-            id = Integer.parseInt(token); //AQUI VA EL AWT
-        }*/
+        
+        if(Token.authenticated(token)){
+            id=Token.getId(token);
+        }
+       
         Connection con = Database.getConnection();
         if(id == null)
         {

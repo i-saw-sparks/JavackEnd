@@ -32,6 +32,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HeaderParam;
 import org.json.simple.JSONArray;
 
 /**
@@ -56,8 +57,11 @@ public class order {
     @GET
     public Response getOrder(
             @QueryParam("id") Integer id, 
-            @QueryParam("user") Integer user //Quitar con token
+            @HeaderParam("Authorization") String token
             ){
+        if(!Token.authenticated(token)){
+                return Response.status(403).build();
+        }
         Connection conn = Database.getConnection();
         if(id != null){
             try {
@@ -90,7 +94,7 @@ public class order {
             try {
                 String query = "SELECT * FROM cocollector.\"Orden\" WHERE \"Usuario\" = ?";
                 PreparedStatement st = conn.prepareStatement(query);
-                st.setInt(1, user);
+                st.setInt(1, Token.getId(token));
                 ResultSet rs = st.executeQuery();
                 JSONArray respArr = new JSONArray();
                 while(rs.next())
@@ -120,8 +124,11 @@ public class order {
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrder(InputStream input){
+    public Response createOrder(InputStream input, @HeaderParam("Authorization") String token){
         try {
+            if(!Token.authenticated(token)){
+                return Response.status(403).build();
+            }
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
@@ -141,7 +148,7 @@ public class order {
                 st.setDate(3, new java.sql.Date(System.currentTimeMillis()));
                 
                 st.setInt(4, (Integer.parseInt(jsonObject.get("direccion").toString())));
-                st.setInt(5, (Integer.parseInt(jsonObject.get("usuario").toString()))); //Quitar con token
+                st.setInt(5, (Token.getId(token))); //Quitar con token
                 ResultSet rs = st.executeQuery();
                 JSONObject resp = new JSONObject();
                 if(rs.next()){
@@ -163,8 +170,11 @@ public class order {
     
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response modifyOrder(InputStream input){
+    public Response modifyOrder(InputStream input, @HeaderParam("Authorization") String token){
         try {
+            if(!Token.authenticated(token)){
+                return Response.status(403).build();
+            }
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
@@ -204,11 +214,7 @@ public class order {
                         direccion = rs.getInt("Direccion");
                     }
                     
-                    if(jsonObject.containsKey("usuario")){
-                        usuario = Integer.parseInt(jsonObject.get("usuario").toString());
-                    }else{
-                        usuario = rs.getInt("Usuario");
-                    }
+                    usuario=Token.getId(token);
                     
                     String querx = "UPDATE cocollector.\"Orden\" SET "
                             + "\"Total\" = ?, "
@@ -240,7 +246,10 @@ public class order {
     }
     
     @DELETE
-    public Response deleteOrder(@QueryParam("id") Integer id){
+    public Response deleteOrder(@QueryParam("id") Integer id, @HeaderParam("Authorization") String token){
+        if(!Token.authenticated(token)){
+                return Response.status(403).build();
+        }
         Connection conn = Database.getConnection();
         String query = "DELETE FROM cocollector.\"Orden\" WHERE \"ID\" = ?";
         PreparedStatement st;

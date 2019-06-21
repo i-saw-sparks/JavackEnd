@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -181,8 +182,11 @@ public class products {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createProduct(InputStream input) {
+    public Response createProduct(InputStream input,@HeaderParam("Authorization") String token) {
         try {
+            if(!Token.authenticated(token)){
+                return Response.status(403).build();
+            }
             Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
@@ -230,7 +234,10 @@ public class products {
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response modifyProduct(InputStream input){
+    public Response modifyProduct(InputStream input,@HeaderParam("Authorization") String token){
+        if(!Token.authenticated(token)){
+            return Response.status(403).build();
+        }
         String descripcion = "", nombre = "";
         Integer precio = 0, stock = 0, categoria = 0;
         try {
@@ -315,7 +322,10 @@ public class products {
      * @return 
      */
     @DELETE
-    public Response deleteProduct(@QueryParam("id") Integer id) {
+    public Response deleteProduct(@QueryParam("id") Integer id,@HeaderParam("Authorization") String token) {
+        if(!Token.authenticated(token)){
+            return Response.status(403).build();
+        }
         Connection conn = Database.getConnection();
         String query = " DELETE FROM cocollector.\"Imagen\" WHERE \"Producto\" = ?; "
                     + " DELETE FROM cocollector.\"Producto\" WHERE \"ID_Producto\" = ? ";
