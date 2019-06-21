@@ -42,6 +42,17 @@ import org.json.simple.JSONArray;
 @Produces(MediaType.APPLICATION_JSON)
 public class order {
     
+    
+    /**
+     * Obtiene como parámetros el id de la orden que se quiere
+     * regresar, o el usuario del cual se necesitan obtener las ordenes.
+     * En caso de ser por id regresa la orden en espécifico y un código 200.
+     * En caso de ser por usuario regresa todas las órdenes pertenecientes a el y un código 200.
+     * Si algún error ocurre en el proceso manda un código de error 400.
+     * @param id
+     * @param user
+     * @return 
+     */
     @GET
     public Response getOrder(
             @QueryParam("id") Integer id, 
@@ -151,15 +162,75 @@ public class order {
     }
     
     @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyOrder(InputStream input){
         try {
+            Connection conn = Database.getConnection();
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(input, "UTF-8"));
-            
-            //Aqui se toman los argumentos y se realiza la query
-            
-            return Response.ok().build();
-            
+            Integer id =  Integer.parseInt(jsonObject.get("id").toString());
+            String query = "SELECT * from cocollector.\"Orden\" where \"ID\" = ?";
+            PreparedStatement st;
+            try{
+                st = conn.prepareStatement(query);
+                st.setInt(1, id);
+                ResultSet rs = st.executeQuery();
+           
+                if(rs.next()){
+                    int total;
+                    String estado;
+                    java.sql.Date fpedido;
+                    int direccion;
+                    int usuario;
+                
+                    if(jsonObject.containsKey("total")){
+                        total = Integer.parseInt(jsonObject.get("total").toString());
+                    }else{
+                        total = rs.getInt("Total");
+                    }
+                    
+                    if(jsonObject.containsKey("estado")){
+                        estado = jsonObject.get("estado").toString();
+                    }else{
+                        estado = rs.getString("Status");
+                    }
+                    
+                    fpedido = rs.getDate("Fecha_pedido");
+                    
+                    
+                    if(jsonObject.containsKey("direccion")){
+                        direccion = Integer.parseInt(jsonObject.get("direccion").toString());
+                    }else{
+                        direccion = rs.getInt("Direccion");
+                    }
+                    
+                    if(jsonObject.containsKey("usuario")){
+                        usuario = Integer.parseInt(jsonObject.get("usuario").toString());
+                    }else{
+                        usuario = rs.getInt("Usuario");
+                    }
+                    
+                    String querx = "UPDATE cocollector.\"Orden\" SET "
+                            + "\"Total\" = ?, "
+                            + "\"Status\" = ?::estado, "
+                            + "\"Fecha_pedido\" = ?, "
+                            + "\"Direccion\" = ?, "
+                            + "\"Usuario\" = ? where \"ID\" = ?";
+                    PreparedStatement sts;
+                    sts = conn.prepareStatement(querx);
+                    sts.setInt(1, total);
+                    sts.setString(2, estado);
+                    sts.setDate(3, fpedido);
+                    sts.setInt(4, direccion);
+                    sts.setInt(5, usuario);
+                    sts.setInt(6, id);
+                    
+                    sts.execute();                        
+                }  
+                return Response.ok().build();
+            }catch(SQLException ex){
+                Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException | ParseException ex) {
