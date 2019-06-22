@@ -22,10 +22,10 @@ import org.jose4j.lang.JoseException;
  */
 public class Token {
     
-    private static HashMap<String,String> tabla;
+    private static HashMap<String,String> tabla=new HashMap<String,String>();
     static
     {
-        tabla = new HashMap<>();
+        
         
     }
     
@@ -48,17 +48,8 @@ public class Token {
             jwe.setKey(key);
             jwe.setCompactSerialization(serializedJwe);
             System.out.println("Payload: " + jwe.getPayload());
-                        
-            tabla.forEach((token,user)->
-            {
-                if(user.equals(id))
-                {
-                    tabla.remove(token);
-                }
-            });
             
             tabla.put(serializedJwe,id);
-
             
             return serializedJwe;
         } catch (JoseException ex) {
@@ -74,12 +65,8 @@ public class Token {
     }
     
     public static boolean authenticated(String token){
-        if(token!=null&&!token.equals("")){
-            if(tabla.containsKey(token))
-            {
-                return true;
-            }
-            return false;
+        if(token!=null||!token.equals("")){
+            return true;
         }else{
             return false;
         }

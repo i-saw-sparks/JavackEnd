@@ -24,9 +24,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import database.Database;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -84,7 +81,7 @@ public class order {
                     resp.put("ID", userid);
                     resp.put("Total", total);
                     resp.put("Status", status);
-                    resp.put("Fecha_pedido", fecha.toString());
+                    resp.put("Fecha_pedido", fecha);
                     resp.put("Direccion", direccion);
                     resp.put("Usuario", usuario);
                     
@@ -110,7 +107,7 @@ public class order {
                     Integer usuario = rs.getInt("Usuario");
                     resp.put("Total",  total);
                     resp.put("Status", status);
-                    resp.put("Fecha_pedido", fecha.toString());
+                    resp.put("Fecha_pedido", fecha);
                     resp.put("Direccion", direccion);
                     resp.put("Usuario", usuario);                   
                     respArr.add(resp);
@@ -127,11 +124,9 @@ public class order {
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createOrder(InputStream input, @HeaderParam("Authorization") String token)
-    {
+    public Response createOrder(InputStream input, @HeaderParam("Authorization") String token){
         try {
             if(!Token.authenticated(token)){
-                System.out.println("No hay token ajjaj");
                 return Response.status(403).build();
             }
             Connection conn = Database.getConnection();
@@ -146,7 +141,6 @@ public class order {
        
             PreparedStatement st;
             try {
-                Integer idOrden  = 1;
                 st = conn.prepareStatement(query);
                 st.setInt(1, Integer.parseInt(jsonObject.get("total").toString()));
                 st.setString(2, (jsonObject.get("estado").toString()));
@@ -158,58 +152,8 @@ public class order {
                 ResultSet rs = st.executeQuery();
                 JSONObject resp = new JSONObject();
                 if(rs.next()){
-                    resp.put("id", rs.getInt("ID"));
-                    idOrden = rs.getInt("ID");
+                    resp.put("id", rs.getString("ID"));
                 }
-                
-                query = "SELECT * FROM cocollector.\"Usuario\" WHERE \"ID\" = ?";
-                
-                st = conn.prepareStatement(query);
-                st.setInt(1, Token.getId(token));
-                
-                rs = st.executeQuery();
-                
-                if(rs.next())
-                {
-                    
-                    URL url = new URL("http://192.168.84.66:6543/transaccion");
-                    
-                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                    
-                    con.setRequestMethod("POST");
-                    con.setConnectTimeout(5000);
-                    con.setReadTimeout(5000);
-                    con.setRequestProperty("Content-Type", "application/json");
-                    con.setDoOutput(true);
-                    JSONObject obj = new JSONObject();
-                    obj.put("monto", Integer.parseInt(jsonObject.get("total").toString()));
-                    obj.put("descripcion", "Compra en tienda desde JAVA");
-                    obj.put("institucion", "Cocollector");
-                    obj.put("tarjeta", rs.getString("Tarjeta_credito"));
-                    
-                    try(OutputStream os = con.getOutputStream()) {
-                        byte[] innn = obj.toJSONString().getBytes("utf-8");
-                        os.write(innn, 0, innn.length);  
-                    }
-                    String status;
-                    if(con.getResponseCode() == 200)
-                    {
-                        status = "Confirmado";
-                    }
-                    else 
-                    {
-                       status = "Rechazado";
-                    }
-                    
-                    query = "UPDATE cocollector.\"Orden\" SET \"Status\" = ?::estado WHERE \"ID\" = ?";
-                    st = conn.prepareStatement(query);
-                    
-                    st.setString(1, status);
-                    st.setInt(2, idOrden);
-                    
-                    st.execute();
-                }
-                
                 return Response.ok(resp.toJSONString()).build();
             } catch (SQLException ex) {
                 Logger.getLogger(order.class.getName()).log(Level.SEVERE, null, ex);
@@ -225,7 +169,7 @@ public class order {
     }
     
     @PUT
-    //@Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyOrder(InputStream input, @HeaderParam("Authorization") String token){
         try {
             if(!Token.authenticated(token)){
